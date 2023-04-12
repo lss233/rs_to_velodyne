@@ -44,9 +44,15 @@ include_directories(rs_to_velodyne
 
 target_link_libraries(rs_to_velodyne ${PCL_LIBRARIES})
 
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+# rs_to_velodyne component
+install(TARGETS rs_to_velodyne
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
+
+# rs_to_velodyne app
+install(TARGETS rs_to_velodyne
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
