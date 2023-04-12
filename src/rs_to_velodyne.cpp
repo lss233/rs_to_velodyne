@@ -26,22 +26,22 @@ static int RING_ID_MAP_16[] = {
 // rslidar and velodyne have slightly different formats
 // rslidar point cloud format
 struct RsPointXYZIRT {
-    PCL_ADD_POINT4D;
-    uint8_t intensity;
+    PCL_ADD_POINT4D
+    float intensity;
     uint16_t ring = 0;
     double timestamp = 0;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 } EIGEN_ALIGN16;
 POINT_CLOUD_REGISTER_POINT_STRUCT(RsPointXYZIRT,
-                                  (float, x, x)(float, y, y)(float, z, z)(uint8_t, intensity, intensity)
+                                  (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)
                                           (uint16_t, ring, ring)(double, timestamp, timestamp))
 
 // velodyne point cloud format
 struct VelodynePointXYZIRT {
     PCL_ADD_POINT4D
 
-    PCL_ADD_INTENSITY;
+    PCL_ADD_INTENSITY
     uint16_t ring;
     float time;
 
@@ -56,7 +56,7 @@ POINT_CLOUD_REGISTER_POINT_STRUCT (VelodynePointXYZIRT,
 struct VelodynePointXYZIR {
     PCL_ADD_POINT4D
 
-    PCL_ADD_INTENSITY;
+    PCL_ADD_INTENSITY
     uint16_t ring;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -77,7 +77,7 @@ bool has_nan(T point) {
     // remove nan point, or the feature association will crash, the surf point will containing nan points
     // pcl remove nan not work normally
     // RCLCPP_ERROR("Containing nan point!");
-    if (pcl_isnan(point.x) || pcl_isnan(point.y) || pcl_isnan(point.z)) {
+    if (std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z)) {
         return true;
     } else {
         return false;
@@ -97,13 +97,13 @@ void publish_points(T &new_pc, const sensor_msgs::msg::PointCloud2 &old_msg) {
     pubRobosensePC->publish(pc_new_msg);
 }
 
-void rsHandler_XYZI(sensor_msgs::msg::PointCloud2 pc_msg) {
+void rsHandler_XYZI(const sensor_msgs::msg::PointCloud2::SharedPtr pc_msg) {
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc(new pcl::PointCloud<pcl::PointXYZI>());
     pcl::PointCloud<VelodynePointXYZIR>::Ptr pc_new(new pcl::PointCloud<VelodynePointXYZIR>());
-    pcl::fromROSMsg(pc_msg, *pc);
+    pcl::fromROSMsg(*pc_msg, *pc);
 
     // to new pointcloud
-    for (int point_id = 0; point_id < pc->points.size(); ++point_id) {
+    for (unsigned long long int point_id = 0; point_id < pc->points.size(); ++point_id) {
         if (has_nan(pc->points[point_id]))
             continue;
 
@@ -121,7 +121,7 @@ void rsHandler_XYZI(sensor_msgs::msg::PointCloud2 pc_msg) {
         pc_new->points.push_back(new_point);
     }
 
-    publish_points(pc_new, pc_msg);
+    publish_points(pc_new, *pc_msg);
 }
 
 
@@ -130,7 +130,7 @@ void handle_pc_msg(const typename pcl::PointCloud<T_in_p>::Ptr &pc_in,
                    const typename pcl::PointCloud<T_out_p>::Ptr &pc_out) {
 
     // to new pointcloud
-    for (int point_id = 0; point_id < pc_in->points.size(); ++point_id) {
+    for (unsigned long long int point_id = 0; point_id < pc_in->points.size(); ++point_id) {
         if (has_nan(pc_in->points[point_id]))
             continue;
         T_out_p new_point;
@@ -151,7 +151,7 @@ void add_ring(const typename pcl::PointCloud<T_in_p>::Ptr &pc_in,
               const typename pcl::PointCloud<T_out_p>::Ptr &pc_out) {
     // to new pointcloud
     int valid_point_id = 0;
-    for (int point_id = 0; point_id < pc_in->points.size(); ++point_id) {
+    for (unsigned long long int point_id = 0; point_id < pc_in->points.size(); ++point_id) {
         if (has_nan(pc_in->points[point_id]))
             continue;
         // 跳过nan点
@@ -164,7 +164,7 @@ void add_time(const typename pcl::PointCloud<T_in_p>::Ptr &pc_in,
               const typename pcl::PointCloud<T_out_p>::Ptr &pc_out) {
     // to new pointcloud
     int valid_point_id = 0;
-    for (int point_id = 0; point_id < pc_in->points.size(); ++point_id) {
+    for (unsigned long long int point_id = 0; point_id < pc_in->points.size(); ++point_id) {
         if (has_nan(pc_in->points[point_id]))
             continue;
         // 跳过nan点
